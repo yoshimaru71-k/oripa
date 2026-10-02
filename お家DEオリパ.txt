@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>おうちDEオリパ - 6種価格帯マルチオリパ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@800&display=swap');
+
+:root {
+  --bg: #070913;
+  --panel: #111827;
+  --accent: #ef4444;
+  --gold: #f59e0b;
+  --gold-grad: linear-gradient(180deg, #fff7ad 0%, #ffa900 50%, #e65c00 100%);
+  --rainbow: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #00ffff, #0000ff, #8b00ff);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: #000; color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex; justify-content: center; min-height: 100vh; user-select: none;
+}
+
+.app-viewport {
+  width: 100%; max-width: 480px; background: var(--bg);
+  min-height: 100vh; display: flex; flex-direction: column; position: relative; overflow-x: hidden;
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.2);
+}
+
+/* ヘッダー */
+header {
+  padding: 12px 16px; background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px);
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); position: sticky; top: 0; z-index: 50;
+}
+.logo { font-size: 18px; font-weight: 900; background: linear-gradient(90deg, #ef4444, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.pt-box { background: #1e293b; padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 800; color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.nav-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; color: #fff;
+  padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+
+/* ガチャ切り替えタブ */
+.tab-container {
+  display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px;
+  background: #0f172a; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.tab-container::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 99px; background: #1e293b;
+  color: #94a3b8; font-size: 12px; font-weight: 800; border: 1px solid transparent; cursor: pointer;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff;
+  border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+main { padding: 16px; flex: 1; }
+
+.page-view { display: none; }
+.page-view.active { display: block; }
+
+/* ===== 超ギラギラ系 ガチャサムネイル（バナー） ===== */
+.gacha-banner {
+  width: 100%; height: 260px; background: #000; position: relative; overflow: hidden;
+  border: 3px solid #f59e0b; border-radius: 16px;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.2);
+  font-family: 'Arial Black', sans-serif;
+}
+
+/* サンバースト輝く回転背景 */
+.bg-glow {
+  position: absolute; inset: -50%;
+  background: 
+    radial-gradient(circle, rgba(239, 68, 68, 0.8) 0%, rgba(147, 51, 234, 0.8) 40%, rgba(0, 0, 0, 0.95) 80%),
+    repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.2) 0deg 15deg, transparent 15deg 30deg);
+  animation: rotateBg 12s linear infinite;
+}
+
+/* 確率アピールテキスト */
+.top-banner-text {
+  position: absolute; top: 12px; left: 0; width: 100%; text-align: center;
+  font-size: 18px; font-weight: 900; color: #fff;
+  text-shadow: 0 0 8px #ff0055, 0 0 15px #ff0055, 2px 2px 0 #000; z-index: 10;
+}
+.highlight-num {
+  font-size: 24px; background: var(--gold-grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px #000);
+}
+
+/* 両サイドに舞うPSA10カード */
+.card-stack { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 2; }
+.dummy-card {
+  position: absolute; width: 55px; height: 78px; background: #222;
+  border: 2px solid #ffd700; border-radius: 4px;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+  background-size: cover; background-position: center;
+}
+.card-left-1 { top: 40px; left: 10px; transform: rotate(-15deg); }
+.card-left-2 { top: 110px; left: 18px; transform: rotate(10deg); }
+.card-right-1 { top: 40px; right: 10px; transform: rotate(15deg); }
+.card-right-2 { top: 110px; right: 18px; transform: rotate(-10deg); }
+
+.psa-badge {
+  position: absolute; top: -6px; right: -6px; background: #d97706; color: #fff;
+  font-size: 8px; padding: 1px 3px; border-radius: 2px; font-weight: bold; border: 1px solid #fff;
+}
+
+/* 中央：天秤対比演出 */
+.center-vs {
+  position: absolute; top: 48%; left: 50%; transform: translate(-50%, -45%);
+  display: flex; align-items: center; gap: 12px; z-index: 10;
+}
+.vs-circle {
+  width: 95px; height: 95px; border-radius: 50%;
+  background: radial-gradient(circle, #ffe600 0%, #ff0000 70%, #4a0000 100%);
+  border: 3px solid #fff; box-shadow: 0 0 20px #ff0000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: #fff; text-shadow: 1px 1px 3px #000;
+}
+.vs-val { font-size: 22px; font-weight: 900; line-height: 1; color: #fff; }
+.vs-sub { font-size: 10px; font-weight: 800; color: #ffeb3b; margin-top: 2px; }
+
+/* 爆還元バッジ */
+.bakugen-badge {
+  position: absolute; bottom: 38px; left: 10px; background: var(--rainbow);
+  padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 900; color: #fff;
+  border: 1px solid #fff; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); z-index: 12;
+  transform: rotate(-5deg); animation: pulse 1.5s infinite alternate;
+}
+
+/* 下部口数・ポイント帯 */
+.bottom-info-bar {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  background: rgba(0, 0, 0, 0.85); border-top: 1px solid rgba(255, 215, 0, 0.4);
+  padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; z-index: 15;
+}
+.price-tag { font-size: 15px; font-weight: 900; color: #fff; }
+.price-tag span { font-size: 18px; color: #f59e0b; }
+.stock-count { font-size: 11px; color: #94a3b8; }
+
+.oripa-body { padding: 16px 0 0 0; }
+.oripa-title { font-size: 18px; font-weight: 900; margin: 0 0 6px 0; color: #fff; }
+.oripa-sub { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+
+.payout-box {
+  background: #0f172a; border-radius: 10px; padding: 10px 12px; margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05); font-size: 11px; color: #cbd5e1;
+}
+.payout-title { font-weight: 900; color: #f59e0b; margin-bottom: 6px; }
+.payout-row { display: flex; justify-content: space-between; padding: 2px 0; }
+
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-start {
+  width: 100%; padding: 14px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; font-size: 15px; font-weight: 900;
+  cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); transition: transform 0.1s;
+}
+.btn-start:active { transform: scale(0.96); }
+.btn-10x { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+
+/* マイページスタイル */
+.mypage-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card { background: #1e293b; border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 4px; }
+.stat-label { font-size: 11px; color: #94a3b8; font-weight: 700; }
+.stat-val { font-size: 18px; font-weight: 900; color: #f59e0b; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-title { font-size: 16px; font-weight: 900; }
+.btn-batch-convert { background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; }
+.empty-state { text-align: center; padding: 40px 0; color: #64748b; font-size: 14px; font-weight: 700; }
+
+.cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
+.card-item {
+  background: #1e293b; border-radius: 12px; padding: 10px; border: 2px solid #334155;
+  display: flex; flex-direction: column; align-items: center; position: relative; transition: all 0.3s;
+}
+.card-item.converted { opacity: 0.4; filter: grayscale(0.8); }
+.card-item.rank-S { border-color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); background: linear-gradient(180deg, #1e293b, #311042); }
+.card-item.rank-A { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+
+.card-img { width: 100%; height: 130px; object-fit: contain; border-radius: 6px; margin: 6px 0; background: #0f172a; }
+.card-name { font-size: 12px; font-weight: 800; text-align: center; height: 32px; display: flex; align-items: center; }
+.card-pt { font-size: 13px; font-weight: 900; color: #38bdf8; margin-top: 4px; }
+.card-date { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+.badge { position: absolute; top: 6px; left: 6px; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 900; background: #000; }
+.badge.S { color: #f59e0b; border: 1px solid #f59e0b; }
+.badge.A { color: #a855f7; border: 1px solid #a855f7; }
+.badge.B { color: #94a3b8; }
+
+.btn-convert-single { margin-top: 8px; width: 100%; padding: 6px; border-radius: 6px; border: none; background: #334155; color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+.btn-convert-single.converted { background: #15803d; color: #86efac; cursor: default; }
+
+/* 演出ステージ */
+.stage-overlay { position: fixed; inset: 0; background: #000; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+.stage-overlay.active { display: flex; }
+.shake { animation: shake 0.08s infinite; }
+
+.lightning-bg { position: absolute; inset: -50%; background: repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(239, 68, 68, 0.2) 10deg 20deg); animation: rotateBg 6s linear infinite; opacity: 0; }
+.count-num { position: absolute; font-size: 140px; font-weight: 1000; font-style: italic; color: #fff; text-shadow: 0 0 30px #ef4444, 0 0 60px #f59e0b; opacity: 0; z-index: 10; }
+.count-num.show { opacity: 1; transform: scale(1.1); }
+
+.kanji-cutin { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 30; background: rgba(0,0,0,0.85); }
+.kanji-text { font-family: 'Shippori Mincho', serif; font-size: 48px; font-weight: 800; text-align: center; background: linear-gradient(180deg, #fff, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.9)); transform: scale(3); opacity: 0; transition: all 0.25s; }
+.kanji-text.show { transform: scale(1); opacity: 1; }
+.sub-cutin { font-size: 22px; font-weight: 900; color: #f59e0b; margin-top: 10px; text-shadow: 0 0 15px #f59e0b; opacity: 0; }
+.sub-cutin.show { opacity: 1; }
+
+/* 結果モーダル */
+.result-modal { position: fixed; inset: 0; background: rgba(7, 9, 19, 0.98); backdrop-filter: blur(15px); z-index: 150; display: none; flex-direction: column; align-items: center; padding: 20px 12px; overflow-y: auto; }
+.result-modal.active { display: flex; }
+.result-header { text-align: center; margin-bottom: 15px; }
+.result-title { font-size: 22px; font-weight: 900; color: #f59e0b; text-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+
+.action-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(17, 24, 39, 0.95); padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: center; z-index: 160; }
+.btn-action { flex: 1; max-width: 200px; padding: 12px; border-radius: 10px; border: none; font-weight: 900; font-size: 14px; cursor: pointer; }
+.btn-all-pt { background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; }
+.btn-close { background: #334155; color: #fff; }
+
+.skip-btn { position: absolute; top: 20px; right: 20px; z-index: 60; background: rgba(255,255,255,0.2); border: 1px solid #fff; color: #fff; padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 800; cursor: pointer; }
+
+@keyframes rotateBg { to { transform: rotate(360deg); } }
+@keyframes pulse { from { transform: rotate(-5deg) scale(0.95); } to { transform: rotate(-5deg) scale(1.05); } }
+@keyframes shake { 0% { transform: translate(3px, 3px); } 50% { transform: translate(-3px, -3px); } 100% { transform: translate(2px, -2px); } }
+</style>
+</head>
+<body>
+
+<div class="app-viewport">
+  <header>
+    <div class="logo" onclick="switchView('gacha')">🔴 よしまるオリパ</div>
+    <div class="header-right">
+      <div class="pt-box" id="userPtDisplay">100,000 PT</div>
+      <button class="nav-btn" id="navToggleBtn" onclick="toggleView()">マイページ</button>
+    </div>
+  </header>
+
+  <!-- ガチャ切り替えタブ -->
+  <div class="tab-container" id="tabContainer"></div>
+
+  <main>
+    <!-- ===== ガチャメイン画面 ===== -->
+    <div class="page-view active" id="gachaPage">
+      
+      <!-- 射幸心を煽るガチャサムネイル -->
+      <div class="gacha-banner">
+        <div class="bg-glow"></div>
+        <div class="top-banner-text" id="bannerTopText">
+          <span class="highlight-num" id="bannerProb">1/1.7</span> の確率でアド当選!!
+        </div>
+
+        <div class="card-stack">
+          <div class="dummy-card card-left-1" id="bCard1"><div class="psa-badge">PSA10</div></div>
+          <div class="dummy-card card-left-2" id="bCard2"><div class="psa-badge">PSA10</div></div>
+          <div class="dummy-card card-right-1" id="bCard3"><div class="psa-badge">PSA10</div></div>
+          <div class="dummy-card card-right-2" id="bCard4"></div>
+        </div>
+
+        <div class="center-vs">
+          <div class="vs-circle">
+            <div class="vs-val" id="vsValLeft">50%</div>
+            <div class="vs-sub" id="vsSubLeft">10,000pt</div>
+          </div>
+          <div style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 10px #000;">VS</div>
+          <div class="vs-circle" style="background: radial-gradient(circle, #00ffff 0%, #002266 100%); box-shadow: 0 0 20px #00ffff;">
+            <div class="vs-val" id="vsValRight">50%</div>
+            <div class="vs-sub" id="vsSubRight">A賞以上</div>
+          </div>
+        </div>
+
+        <div class="bakugen-badge" id="bakugenBadge">🔥 爆還元 100% OVER</div>
+
+        <div class="bottom-info-bar">
+          <div class="price-tag">1口 <span id="bannerPrice">9,000</span> Pt</div>
+          <div class="stock-count" id="bannerStock">残り 3609 / 5000</div>
+        </div>
+      </div>
+
+      <div class="oripa-body">
+        <h2 class="oripa-title" id="gachaTitle">ガチャタイトル</h2>
+        <div class="oripa-sub" id="gachaSub">ガチャ説明</div>
+
+        <div class="payout-box">
+          <div class="payout-title">🔥 当たり配分＆還元PT一覧</div>
+          <div id="payoutList"></div>
+        </div>
+
+        <div class="btn-grid">
+          <button class="btn-start" id="btn1x" onclick="startGacha(1)">1連ガチャ</button>
+          <button class="btn-start btn-10x" id="btn10x" onclick="startGacha(10)">10連ガチャ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== マイページ画面 ===== -->
+    <div class="page-view" id="mypagePage">
+      <div class="mypage-stats">
+        <div class="stat-card">
+          <span class="stat-label">所持ポイント</span>
+          <span class="stat-val" id="myPtVal">0 PT</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">獲得カード数</span>
+          <span class="stat-val" id="myCardCount">0 枚</span>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">📦 所持アイテムコレクション</div>
+        <button class="btn-batch-convert" onclick="convertAllInMypage()">未変換カードを一括PT還元</button>
+      </div>
+
+      <div class="cards-grid" id="mypageGrid"></div>
+      <div class="empty-state" id="mypageEmpty" style="display:none;">まだ獲得したカードがありません。<br>ガチャを引いてコレクションを集めよう！</div>
+    </div>
+  </main>
+</div>
+
+<!-- ガチャ演出画面 -->
+<div class="stage-overlay" id="stageOverlay">
+  <button class="skip-btn" id="skipBtn">SKIP ≫</button>
+  <div class="lightning-bg" id="lightningBg"></div>
+  <div class="count-num" id="countNum">3</div>
+
+  <div class="kanji-cutin" id="kanjiCutin">
+    <div class="kanji-text" id="kanjiText">よしまる覚醒</div>
+    <div class="sub-cutin" id="subCutin">★ S賞確定 ★</div>
+  </div>
+</div>
+
+<!-- 結果モーダル -->
+<div class="result-modal" id="resultModal">
+  <div class="result-header">
+    <div class="result-title" id="resultTitle">獲得カード一覧</div>
+    <div style="font-size:12px;color:#94a3b8;margin-top:4px">不要なカードはPTに変換できます</div>
+  </div>
+
+  <div class="cards-grid" id="resultCardsGrid" style="max-width:440px; margin-bottom:80px;"></div>
+
+  <div class="action-bar">
+    <button class="btn-action btn-all-pt" onclick="convertResultAllToPt()">一括PT変換</button>
+    <button class="btn-action btn-close" onclick="closeResult()">OK</button>
+  </div>
+</div>
+
+<script>
+let userPt = 100000;
+let currentGachaIndex = 0;
+let currentResults = [];
+let inventory = [];
+let timers = [];
+let currentView = 'gacha';
+
+const GACHA_LIST = [
+  {
+    price: 100,
+    probText: "1/1.2",
+    title: "【100pt】よしまるお試しオリパ",
+    sub: "手軽に遊べるワンコインガチャ！マスコットARを狙え！",
+    vsLeft: { val: "80%", sub: "100pt還元" },
+    vsRight: { val: "20%", sub: "S/A賞" },
+    badge: "🔥 超初心者優遇！100%還元オーバー",
+    stock: "残り 4890/5000",
+    cards: [
+      { name: "ピカチュウ AR", rank: "S", prob: 0.03, pt: 3000, img: "https://dummyimage.com/300x400/f59e0b/000&text=PIKACHU+AR" },
+      { name: "ゲンガー AR", rank: "A", prob: 0.15, pt: 500, img: "https://dummyimage.com/300x400/a855f7/fff&text=GENGAR+AR" },
+      { name: "モンスターボール", rank: "B", prob: 0.82, pt: 20, img: "https://dummyimage.com/300x400/334155/fff&text=MONSTER+BALL" }
+    ]
+  },
+  {
+    price: 9000,
+    probText: "1/1.7",
+    title: "【9000pt】定番！よしまるBOXブレイク",
+    sub: "よしまる覚醒カットイン高確率発生オリパ！",
+    vsLeft: { val: "50%", sub: "10,000pt" },
+    vsRight: { val: "50%", sub: "A賞以上" },
+    badge: "🔥 爆還元 100% OVER!!",
+    stock: "残り 3609/5000",
+    cards: [
+      { name: "輪廻BOX ブレイク", rank: "S", prob: 0.05, pt: 150000, img: "https://dummyimage.com/300x400/f59e0b/000&text=BOX+BREAK" },
+      { name: "ナンジャモ SAR", rank: "S", prob: 0.10, pt: 100000, img: "https://dummyimage.com/300x400/ec4899/fff&text=NANJAMO+SAR" },
+      { name: "リザードン ex", rank: "A", prob: 0.25, pt: 20000, img: "https://dummyimage.com/300x400/ef4444/fff&text=CHARIZARD+EX" },
+      { name: "スーパーボール", rank: "B", prob: 0.60, pt: 1000, img: "https://dummyimage.com/300x400/334155/fff&text=GREAT+BALL" }
+    ]
+  },
+  {
+    price: 35000,
+    probText: "1/1.77",
+    title: "【35000pt】ゴースト元帥 - TOP賞ぶち抜き",
+    sub: "限定300口！TOP賞ぶち抜きやすさ最強！",
+    vsLeft: { val: "40%", sub: "50,000pt" },
+    vsRight: { val: "60%", sub: "PSA10確定" },
+    badge: "⚡ 限定300口！アド率激高オリパ",
+    stock: "残り 247/300",
+    cards: [
+      { name: "ゲンガーVMAX SA", rank: "S", prob: 0.10, pt: 350000, img: "https://dummyimage.com/300x400/f59e0b/000&text=GENGAR+SA" },
+      { name: "ブラッキーVMAX", rank: "A", prob: 0.30, pt: 80000, img: "https://dummyimage.com/300x400/a855f7/fff&text=UMBREON" },
+      { name: "ハイパーボール", rank: "B", prob: 0.60, pt: 5000, img: "https://dummyimage.com/300x400/334155/fff&text=ULTRA+BALL" }
+    ]
+  }
+];
+
+function initApp() {
+  updatePtDisplay();
+  renderTabs();
+  switchGacha(0);
+}
+
+function updatePtDisplay() {
+  document.getElementById('userPtDisplay').textContent = `${userPt.toLocaleString()} PT`;
+  document.getElementById('myPtVal').textContent = `${userPt.toLocaleString()} PT`;
+  document.getElementById('myCardCount').textContent = `${inventory.length} 枚`;
+}
+
+function toggleView() { switchView(currentView === 'gacha' ? 'mypage' : 'gacha'); }
+
+function switchView(target) {
+  currentView = target;
+  const gachaPage = document.getElementById('gachaPage');
+  const mypagePage = document.getElementById('mypagePage');
+  const tabContainer = document.getElementById('tabContainer');
+  const navBtn = document.getElementById('navToggleBtn');
+
+  if (target === 'mypage') {
+    gachaPage.classList.remove('active');
+    mypagePage.classList.add('active');
+    tabContainer.style.display = 'none';
+    navBtn.textContent = "ガチャへ";
+    renderMypage();
+  } else {
+    mypagePage.classList.remove('active');
+    gachaPage.classList.add('active');
+    tabContainer.style.display = 'flex';
+    navBtn.textContent = "マイページ";
+  }
+}
+
+function renderTabs() {
+  const container = document.getElementById('tabContainer');
+  container.innerHTML = '';
+  GACHA_LIST.forEach((gacha, idx) => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
+    btn.textContent = `${gacha.price.toLocaleString()}pt`;
+    btn.onclick = () => switchGacha(idx);
+    container.appendChild(btn);
+  });
+}
+
+function switchGacha(index) {
+  currentGachaIndex = index;
+  const gacha = GACHA_LIST[index];
+
+  document.querySelectorAll('.tab-btn').forEach((t, i) => t.classList.toggle('active', i === index));
+
+  /* バナー内の表示更新 */
+  document.getElementById('bannerProb').textContent = gacha.probText;
+  document.getElementById('vsValLeft').textContent = gacha.vsLeft.val;
+  document.getElementById('vsSubLeft').textContent = gacha.vsLeft.sub;
+  document.getElementById('vsValRight').textContent = gacha.vsRight.val;
+  document.getElementById('vsSubRight').textContent = gacha.vsRight.sub;
+  document.getElementById('bakugenBadge').textContent = gacha.badge;
+  document.getElementById('bannerPrice').textContent = gacha.price.toLocaleString();
+  document.getElementById('bannerStock').textContent = gacha.stock;
+
+  /* サムネイル画像（ダミー画像） */
+  document.getElementById('bCard1').style.backgroundImage = `url('${gacha.cards[0].img}')`;
+  document.getElementById('bCard2').style.backgroundImage = `url('${gacha.cards[1] ? gacha.cards[1].img : gacha.cards[0].img}')`;
+  document.getElementById('bCard3').style.backgroundImage = `url('${gacha.cards[0].img}')`;
+  document.getElementById('bCard4').style.backgroundImage = `url('${gacha.cards[gacha.cards.length-1].img}')`;
+
+  /* ガチャ情報 */
+  document.getElementById('gachaTitle').textContent = gacha.title;
+  document.getElementById('gachaSub').textContent = gacha.sub;
+  document.getElementById('btn1x').textContent = `1連 (${gacha.price.toLocaleString()}pt)`;
+  document.getElementById('btn10x').textContent = `10連 (${(gacha.price * 10).toLocaleString()}pt)`;
+
+  const payoutList = document.getElementById('payoutList');
+  payoutList.innerHTML = '';
+  gacha.cards.forEach(card => {
+    const row = document.createElement('div');
+    row.className = 'payout-row';
+    row.innerHTML = `
+      <span>[${card.rank}賞] ${card.name}</span>
+      <span style="font-weight:900;color:#38bdf8">${card.pt.toLocaleString()} PT (確率 ${(card.prob * 100).toFixed(0)}%)</span>
+    `;
+    payoutList.appendChild(row);
+  });
+}
+
+function startGacha(count) {
+  const gacha = GACHA_LIST[currentGachaIndex];
+  const totalCost = gacha.price * count;
+
+  if (userPt < totalCost) {
+    alert("ポイントが不足しています");
+    return;
+  }
+  userPt -= totalCost;
+  updatePtDisplay();
+
+  currentResults = [];
+  const now = new Date();
+  const dateStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  for (let i = 0; i < count; i++) {
+    const rand = Math.random();
+    let cumulative = 0;
+    let selectedCard = gacha.cards[gacha.cards.length - 1];
+
+    for (const card of gacha.cards) {
+      cumulative += card.prob;
+      if (rand <= cumulative) {
+        selectedCard = card;
+        break;
+      }
+    }
+    
+    const itemData = {
+      id: Date.now() + "_" + Math.random().toString(36).substr(2, 9),
+      ...selectedCard,
+      date: dateStr,
+      converted: false
+    };
+
+    currentResults.push(itemData);
+    inventory.unshift(itemData);
+  }
+
+  runAnimation(count);
+}
+
+function runAnimation(drawCount) {
+  const stage = document.getElementById('stageOverlay');
+  const lightningBg = document.getElementById('lightningBg');
+  const countNum = document.getElementById('countNum');
+  const kanjiCutin = document.getElementById('kanjiCutin');
+  const kanjiText = document.getElementById('kanjiText');
+  const subCutin = document.getElementById('subCutin');
+
+  timers.forEach(clearTimeout); timers = [];
+  stage.classList.add('active', 'shake');
+  lightningBg.style.opacity = '1';
+  kanjiCutin.style.display = 'none';
+  kanjiText.classList.remove('show');
+  subCutin.classList.remove('show');
+
+  document.getElementById('skipBtn').onclick = () => {
+    timers.forEach(clearTimeout);
+    stage.classList.remove('active', 'shake');
+    showResults();
+  };
+
+  let c = 3;
+  countNum.textContent = c;
+  countNum.classList.add('show');
+
+  const interval = setInterval(() => {
+    c--;
+    if (c > 0) {
+      countNum.textContent = c;
+    } else {
+      clearInterval(interval);
+      countNum.classList.remove('show');
+      
+      kanjiCutin.style.display = 'flex';
+      if (drawCount === 10) {
+        kanjiText.innerHTML = "十連一閃<br>よしまる覚醒";
+        subCutin.textContent = "⚡ 10連超アド確定 ⚡";
+      } else {
+        kanjiText.innerHTML = "よしまる覚醒";
+        subCutin.textContent = "★ S賞確定 ★";
+      }
+
+      timers.push(setTimeout(() => {
+        kanjiText.classList.add('show');
+        subCutin.classList.add('show');
+      }, 100));
+
+      timers.push(setTimeout(() => {
+        stage.classList.remove('active', 'shake');
+        showResults();
+      }, 2000));
+    }
+  }, 300);
+}
+
+function showResults() {
+  const modal = document.getElementById('resultModal');
+  const grid = document.getElementById('resultCardsGrid');
+  grid.innerHTML = '';
+  modal.classList.add('active');
+
+  document.getElementById('resultTitle').textContent = currentResults.length === 10 ? "🎉 10連ガチャ結果" : "🎉 獲得カード";
+
+  currentResults.forEach((item) => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `card-item rank-${item.rank}`;
+    cardEl.innerHTML = `
+      <span class="badge ${item.rank}">${item.rank}賞</span>
+      <img src="${item.img}" class="card-img" alt="${item.name}">
+      <div class="card-name">${item.name}</div>
+      <div class="card-pt">+${item.pt.toLocaleString()} PT</div>
+      <button class="btn-convert-single" id="res-btn-${item.id}" onclick="convertSingleById('${item.id}', 'result')">PT還元</button>
+    `;
+    grid.appendChild(cardEl);
+  });
+}
+
+function renderMypage() {
+  const grid = document.getElementById('mypageGrid');
+  const empty = document.getElementById('mypageEmpty');
+  grid.innerHTML = '';
+
+  if (inventory.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  inventory.forEach(item => {
+    const cardEl = document.createElement('div');
+    cardEl.className = `card-item rank-${item.rank} ${item.converted ? 'converted' : ''}`;
+    cardEl.innerHTML = `
+      <span class="badge ${item.rank}">${item.rank}賞</span>
+      <img src="${item.img}" class="card-img" alt="${item.name}">
+      <div class="card-name">${item.name}</div>
+      <div class="card-pt">+${item.pt.toLocaleString()} PT</div>
+      <div class="card-date">${item.date} 獲得</div>
+      <button class="btn-convert-single ${item.converted ? 'converted' : ''}" 
+              id="my-btn-${item.id}" 
+              onclick="convertSingleById('${item.id}', 'mypage')">
+        ${item.converted ? '還元済み' : 'PT還元'}
+      </button>
+    `;
+    grid.appendChild(cardEl);
+  });
+
+  updatePtDisplay();
+}
+
+function convertSingleById(itemId, source) {
+  const item = inventory.find(i => i.id === itemId);
+  if (!item || item.converted) return;
+
+  item.converted = true;
+  userPt += item.pt;
+  updatePtDisplay();
+
+  const resBtn = document.getElementById(`res-btn-${itemId}`);
+  if (resBtn) {
+    resBtn.textContent = "還元済み";
+    resBtn.classList.add('converted');
+  }
+
+  if (source === 'mypage') renderMypage();
+}
+
+function convertResultAllToPt() {
+  let addedPt = 0;
+  currentResults.forEach(item => {
+    if (!item.converted) {
+      item.converted = true;
+      addedPt += item.pt;
+      const resBtn = document.getElementById(`res-btn-${item.id}`);
+      if (resBtn) {
+        resBtn.textContent = "還元済み";
+        resBtn.classList.add('converted');
+      }
+    }
+  });
+
+  if (addedPt > 0) {
+    userPt += addedPt;
+    updatePtDisplay();
+    alert(`${addedPt.toLocaleString()} PT に還元しました！`);
+  } else {
+    alert("還元可能なカードがありません");
+  }
+}
+
+function convertAllInMypage() {
+  let addedPt = 0;
+  inventory.forEach(item => {
+    if (!item.converted) {
+      item.converted = true;
+      addedPt += item.pt;
+    }
+  });
+
+  if (addedPt > 0) {
+    userPt += addedPt;
+    renderMypage();
+    alert(`${addedPt.toLocaleString()} PT に還元しました！`);
+  } else {
+    alert("還元可能な未変換カードがありません");
+  }
+}
+
+function closeResult() { document.getElementById('resultModal').classList.remove('active'); }
+
+window.onload = initApp;
+</script>
+</body>
+</html>
